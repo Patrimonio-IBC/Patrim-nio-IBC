@@ -123,6 +123,10 @@
     <h1>Cadastrar Produto</h1>
 
     <form action="/criar-produto" method="POST">
+        
+        <label for="numero_produto">Número do Produto:</label>
+        <input type="text" id="numero_produto" name="numero_produto" placeholder="Digite o número do produto" required>
+        
         <label for="titulo_produto">Título do Produto:</label>
         <input type="text" id="titulo_produto" name="titulo_produto" placeholder="Digite o nome" required>
 
@@ -150,11 +154,12 @@
         <button type="submit">Cadastrar</button>
     </form>
 
-    <input type="text" id="search-bar" placeholder="Pesquisar produto por nome..." onkeyup="searchUser()">
+    <input type="text" id="search-bar" placeholder="Pesquisar produto por numero do produto..." onkeyup="searchUser()">
 
     <h2>Produtos Cadastrados</h2>
     <table id="userTable">
         <tr>
+            <th>Número do Produto</th>
             <th>Título do Produto</th>
             <th>Marca</th>
             <th>Modelo</th>
@@ -168,6 +173,7 @@
         </tr>
         <% usuarios.forEach(usuario => { %>
             <tr>
+                <td><%= usuario.numero_produto %></td>
                 <td><%= usuario.titulo_produto %></td>
                 <td><%= usuario.marca %></td>
                 <td><%= usuario.modelo %></td>
