@@ -123,7 +123,6 @@
     <h1>Cadastrar Produto</h1>
 
     <form action="/criar-produto" method="POST">
-        
         <label for="numero_produto">Número do Produto:</label>
         <input type="text" id="numero_produto" name="numero_produto" placeholder="Digite o número do produto" required>
         
@@ -154,49 +153,35 @@
         <button type="submit">Cadastrar</button>
     </form>
 
-    <input type="text" id="search-bar" placeholder="Pesquisar produto por numero do produto..." onkeyup="searchUser()">
+    <input type="text" id="search-bar" placeholder="Pesquisar produto por número do produto..." onkeyup="searchUser()">
 
     <h2>Produtos Cadastrados</h2>
     <table id="userTable">
         <tr>
             <th>Número do Produto</th>
             <th>Título do Produto</th>
-            <th>Marca</th>
-            <th>Modelo</th>
-            <th>Valor</th>
-            <th>Quantidade</th>
-            <th>Data de Compra</th>
-            <th>Data de Venda</th>
-            <th>Descrição</th>
             <th>Atualizar</th>
             <th>Deletar</th>
         </tr>
         <% usuarios.forEach(usuario => { %>
             <tr>
-                <td><%= usuario.numero_produto %></td>
-                <td><%= usuario.titulo_produto %></td>
-                <td><%= usuario.marca %></td>
-                <td><%= usuario.modelo %></td>
-                <td><%= usuario.valor %></td>
-                <td><%= usuario.quantidade %></td>
-                <td><%= usuario.data_compra %></td>
-                <td><%= usuario.data_venda %></td>
-                <td><%= usuario.descricao %></td>
+                <td onclick="openDetailModal('<%= JSON.stringify(usuario) %>')" style="cursor: pointer; color: blue; text-decoration: underline;"><%= usuario.numero_produto %></td>
+                <td onclick="openDetailModal('<%= JSON.stringify(usuario) %>')" style="cursor: pointer; color: blue; text-decoration: underline;"><%= usuario.titulo_produto %></td>
                 <td><a href="#" onclick="openModal('<%= usuario.numero_produto %>', '<%= usuario.titulo_produto %>', '<%= usuario.marca %>', '<%= usuario.modelo %>', '<%= usuario.valor %>', '<%= usuario.quantidade %>', '<%= usuario.data_compra %>', '<%= usuario.data_venda %>', '<%= usuario.descricao %>')">Editar</a></td>
                 <td><a href="/deletar-produto/<%= usuario.numero_produto %>">Deletar</a></td>
             </tr>
         <% }) %>
     </table>
 
+    <!-- Modal para editar produto -->
     <div id="modal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeModal()">&times;</span>
             <h2>Editar Produto</h2>
             <form id="editForm" action="/editar-produto" method="POST">
                 <input type="hidden" id="editId" name="numero_produto">
-
                 <label for="modal_titulo_produto">Título do Produto:</label>
-                <input type="text" id="modal_titulo_produto" name="titulo_produto" placeholder="Digite o nome" required>
+                <input type="text" id="modal_titulo_produto" name="titulo_produto" required>
         
                 <label for="modal_marca">Marca:</label>
                 <input type="text" id="modal_marca" name="marca">
@@ -224,9 +209,18 @@
         </div>
     </div>
 
+    <!-- Modal para detalhes do produto -->
+    <div id="detailModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeDetailModal()">&times;</span>
+            <h2>Detalhes do Produto</h2>
+            <div id="detail-modal-details"></div>
+        </div>
+    </div>
+
     <script>
         function openModal(numero_produto, titulo_produto, marca, modelo, valor, quantidade, data_compra, data_venda, descricao) {
-            document.getElementById('editId').value = numero_produto; // Usando numero_produto
+            document.getElementById('editId').value = numero_produto;
             document.getElementById('modal_titulo_produto').value = titulo_produto;
             document.getElementById('modal_marca').value = marca;
             document.getElementById('modal_modelo').value = modelo;
@@ -234,7 +228,6 @@
             document.getElementById('modal_quantidade').value = quantidade;
             document.getElementById('modal_data_compra').value = data_compra;
             document.getElementById('modal_data_venda').value = data_venda;
-            document.getElementById('modal_descricao').value = descricao;
             document.getElementById('modal').style.display = 'block';
         }
 
@@ -242,9 +235,33 @@
             document.getElementById('modal').style.display = 'none';
         }
 
+        function openDetailModal(usuario) {
+            const userDetails = JSON.parse(usuario);
+            let detailsHTML = `
+                <p><strong>Número do Produto:</strong> ${userDetails.numero_produto}</p>
+                <p><strong>Título do Produto:</strong> ${userDetails.titulo_produto}</p>
+                <p><strong>Marca:</strong> ${userDetails.marca}</p>
+                <p><strong>Modelo:</strong> ${userDetails.modelo}</p>
+                <p><strong>Valor:</strong> ${userDetails.valor}</p>
+                <p><strong>Quantidade:</strong> ${userDetails.quantidade}</p>
+                <p><strong>Data da Compra:</strong> ${userDetails.data_compra}</p>
+                <p><strong>Data da Venda:</strong> ${userDetails.data_venda}</p>
+                <p><strong>Descrição:</strong> ${userDetails.descricao}</p>
+            `;
+            document.getElementById('detail-modal-details').innerHTML = detailsHTML;
+            document.getElementById('detailModal').style.display = 'block';
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detailModal').style.display = 'none';
+        }
+
         window.onclick = function(event) {
             if (event.target == document.getElementById('modal')) {
                 closeModal();
+            }
+            if (event.target == document.getElementById('detailModal')) {
+                closeDetailModal();
             }
         }
 
@@ -252,11 +269,10 @@
             let input = document.getElementById('search-bar').value.toLowerCase();
             let rows = document.querySelectorAll('#userTable tr:not(:first-child)');
             rows.forEach(row => {
-                let nome = row.cells[0].textContent.toLowerCase();
-                row.style.display = nome.includes(input) ? '' : 'none';
+                let numeroProduto = row.cells[0].textContent.toLowerCase();
+                row.style.display = numeroProduto.includes(input) ? '' : 'none';
             });
         }
     </script>
-
 </body>
 </html>
