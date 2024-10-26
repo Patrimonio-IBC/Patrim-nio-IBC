@@ -77,7 +77,8 @@ app.post('/criar-produto', async (req, res) => {
 
     await criarUsuario(numero_produto, titulo_produto, marca, modelo, valorProduto, quantidadeProduto, dataCompra, dataVenda, descricao);
     const usuarios = await lerUsuarios();
-    res.render('index', { usuarios });
+    res.redirect('/')
+    // res.render('index', { usuarios });
 });
 
 
@@ -95,14 +96,16 @@ app.post('/editar-produto', async (req, res) => {
 
     await editarUsuario(numero_produto, titulo_produto, marca, modelo, valorProduto, quantidadeProduto, dataCompra, dataVenda, descricao);
     const usuarios = await lerUsuarios();
-    res.render('index', { usuarios });
+    res.redirect('/')
+    // res.render('index', { usuarios });
 });
 
 app.get('/deletar-produto/:numero_produto', async (req, res) => {
     const { numero_produto } = req.params;
     await deletarUsuario(numero_produto);
     const usuarios = await lerUsuarios();
-    res.render('index', { usuarios });
+    res.redirect('/')
+    // res.render('index', { usuarios });
 });
 
 async function editarUsuario(numero_produto, titulo_produto, marca, modelo, valor, quantidade, data_compra, data_venda, descricao) {
