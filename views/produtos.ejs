@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Produtos</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            padding-top: 60px;
+        }
+        .modal-content {
+            background-color: #fff;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 60%;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Produtos</h1>
+    <!-- Botão para abrir o modal de adicionar novo produto -->
+    <button onclick="openAddProductModal()">Adicionar Novo Produto</button> <br> <br>
+
+    <!-- Modal para Adicionar Novo Produto -->
+    <div id="addProductModal" class="modal">
+        <div class="modal-content">
+            <span onclick="closeAddProductModal()">×</span>
+            <h2>Adicionar Novo Produto</h2>
+            <form action="/produtos/adicionar" method="POST">
+                <label for="titulo_produto">Produto:</label>
+                <input type="text" id="titulo_produto" name="titulo_produto" required><br><br>
+                <label for="marca">Marca:</label>
+                <input type="text" id="marca" name="marca"><br><br>
+                <label for="modelo">Modelo:</label>
+                <input type="text" id="modelo" name="modelo"><br><br>
+                <label for="valor">Valor:</label>
+                <input type="number" id="valor" name="valor" required><br><br>
+                <label for="quantidade">Quantidade:</label>
+                <input type="number" id="quantidade" name="quantidade" required><br><br>
+                <label for="data_compra">Data de Compra:</label>
+                <input type="date" id="data_compra" name="data_compra"><br><br>
+                <label for="data_venda">Data de Venda:</label>
+                <input type="date" id="data_venda" name="data_venda"><br><br>
+                <label for="descricao">Descrição:</label>
+                <textarea id="descricao" name="descricao"></textarea><br><br>
+                <button type="submit">Adicionar Produto</button>
+            </form>
+        </div>
+    </div>
+    <!-- Barra de pesquisa -->
+    <input type="text" id="search" placeholder="Pesquisar por nome..." oninput="searchProducts()">
+    
+    <h2>Lista de Produtos</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Produto</th>
+                <th>Marca</th>
+                <th>Modelo</th>
+                <th>Valor</th>
+                <th>Quantidade</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody id="productTable">
+            <% itens.forEach(item => { %>
+                <tr>
+                    <td><%= item.titulo_produto %></td>
+                    <td><%= item.marca %></td>
+                    <td><%= item.modelo %></td>
+                    <td>R$ <%= item.valor ? item.valor.toFixed(2) : '0.00' %></td>
+                    <td><%= item.quantidade %></td>
+                    <td>
+                        <!-- Botões para Editar e Deletar -->
+                        <button onclick="editProduct(<%= item.numero_produto %>)">Editar</button>
+                        <form action="/produtos/deletar/<%= item.numero_produto %>" method="POST" style="display:inline;">
+                            <button type="submit">Deletar</button>
+                        </form>
+                    </td>
+                </tr>
+                <!-- Modal para Editar - dentro do loop para cada item -->
+                <div id="editModal<%= item.numero_produto %>" class="modal">
+                    <div class="modal-content">
+                        <span onclick="closeModal(<%= item.numero_produto %>)">×</span>
+                        <h2>Editar Produto</h2>
+                        <form id="editForm<%= item.numero_produto %>" action="/produtos/editar/<%= item.numero_produto %>" method="POST">
+                            <label for="titulo_produto">Produto:</label>
+                            <input type="text" id="titulo_produto<%= item.numero_produto %>" name="titulo_produto" value="<%= item.titulo_produto %>" required><br><br>
+                            <label for="marca">Marca:</label>
+                            <input type="text" id="marca<%= item.numero_produto %>" name="marca" value="<%= item.marca %>"><br><br>
+                            <label for="modelo">Modelo:</label>
+                            <input type="text" id="modelo<%= item.numero_produto %>" name="modelo" value="<%= item.modelo %>"><br><br>
+                            <label for="valor">Valor:</label>
+                            <input type="number" id="valor<%= item.numero_produto %>" name="valor" value="<%= item.valor %>" required><br><br>
+                            <label for="quantidade">Quantidade:</label>
+                            <input type="number" id="quantidade<%= item.numero_produto %>" name="quantidade" value="<%= item.quantidade %>" required><br><br>
+                            <label for="data_compra">Data de Compra:</label>
+                            <input type="date" id="data_compra<%= item.numero_produto %>" name="data_compra" value="<%= item.data_compra %>"><br><br>
+                            <label for="data_venda">Data de Venda:</label>
+                            <input type="date" id="data_venda<%= item.numero_produto %>" name="data_venda" value="<%= item.data_venda %>"><br><br>
+                            <label for="descricao">Descrição:</label>
+                            <textarea id="descricao<%= item.numero_produto %>" name="descricao"><%= item.descricao %></textarea><br><br>
+                            <button type="submit">Salvar</button>
+                        </form>
+                    </div>
+                </div>
+            <% }) %>
+        </tbody>
+    </table>
+
+    <h2>Reservas Pendentes</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Produto</th>
+            <th>Nome do Usuário</th>
+            <th>Quantidade</th>
+            <th>Data de Retirada</th>
+            <th>Data de Devolução</th>
+            <th>Status</th>
+            <th>Ação</th>
+        </tr>
+    </thead>
+    <tbody>
+        <% reservasPendentes.forEach(reserva => { %> <!-- Aqui estamos utilizando reservasPendentes que agora contém o nome do produto -->
+            <tr>
+                <!-- Exibindo o nome do produto -->
+                <td><%= reserva.titulo_produto %></td> <!-- Nome do produto -->
+                <!-- Verificando se usuario_id e nome existem -->
+                <td><%= reserva.usuario_id ? reserva.usuario_id.nome : 'Usuário não encontrado' %></td>
+                <td><%= reserva.quantidade %></td>
+                <td><%= reserva.data_retirada %></td>
+                <td><%= reserva.data_devolucao %></td>
+                <td><%= reserva.status %></td>
+                <td>
+                    <form action="/produtos/alterar-reserva/<%= reserva.id %>" method="POST">
+                        <button type="submit" name="status" value="aprovado">Aprovar</button>
+                        <button type="submit" name="status" value="rejeitado">Rejeitar</button>
+                    </form>
+                </td>
+            </tr>
+        <% }) %>
+    </tbody>
+</table>
+
+<h2>Reservas Aprovadas e Rejeitadas</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Produto</th>
+            <th>Nome do Usuário</th>
+            <th>Quantidade</th>
+            <th>Data de Retirada</th>
+            <th>Data de Devolução</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        <% reservasAprovadasRejeitadas.forEach(reserva => { %> <!-- Mesma lógica para as reservas aprovadas e rejeitadas -->
+            <tr>
+                <td><%= reserva.titulo_produto %></td> <!-- Nome do produto -->
+                <td><%= reserva.usuario_id ? reserva.usuario_id.nome : 'Usuário não encontrado' %></td>
+                <td><%= reserva.quantidade %></td>
+                <td><%= reserva.data_retirada %></td>
+                <td><%= reserva.data_devolucao %></td>
+                <td><%= reserva.status %></td>
+            </tr>
+        <% }) %>
+    </tbody>
+</table>
+
+<a href="logout-adm">Sair</a>
+    <script>
+        // Função de pesquisa
+        function searchProducts() {
+            let searchTerm = document.getElementById('search').value.toLowerCase();
+            let rows = document.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                let productName = row.querySelector('td').textContent.toLowerCase();
+                if (productName.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // Função para abrir o modal de edição
+        function editProduct(id) {
+            // Mostrar o modal específico para cada item
+            document.getElementById('editModal' + id).style.display = 'block';
+        }
+
+        // Função para fechar o modal
+        function closeModal(id) {
+            document.getElementById('editModal' + id).style.display = 'none';
+        }
+        function openAddProductModal() {
+            document.getElementById('addProductModal').style.display = 'block';
+        }
+
+        // Função para fechar o modal de adicionar novo produto
+        function closeAddProductModal() {
+            document.getElementById('addProductModal').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

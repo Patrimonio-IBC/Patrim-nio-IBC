@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <!-- Fontes estilizadas para um estilo mais "gamer" -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron&display=swap" rel="stylesheet">
+    <style>
+        /* Estilos gerais da página */
+        body {
+            background: linear-gradient(135deg, #1f1f1f, #0f0f0f);
+            font-family: 'Orbitron', sans-serif;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        /* Container centralizado para o conteúdo */
+        .login-container {
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.8);
+            width: 380px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        h2 {
+            color: #ff4081; /* Cor vibrante para o título */
+            margin-bottom: 30px;
+            font-size: 36px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Estilo do formulário */
+        .form-input {
+            background-color: #333;
+            border: 2px solid #444;
+            border-radius: 10px;
+            padding: 12px 15px;
+            width: 100%;
+            margin: 10px 0;
+            color: #fff;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            border-color: #ff4081;
+            outline: none;
+            box-shadow: 0 0 5px rgba(255, 64, 129, 0.7);
+        }
+
+        .form-button {
+            background-color: #ff4081;
+            border: none;
+            border-radius: 10px;
+            padding: 15px;
+            width: 100%;
+            color: #fff;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .form-button:hover {
+            background-color: #e0356c;
+        }
+
+        .form-button:active {
+            background-color: #d72a5a;
+            transform: scale(0.98);
+        }
+
+        /* Mensagem de erro */
+        .error-message {
+            color: #f44336; /* Vermelho vibrante */
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+
+        /* Estilo do link */
+        .register-link {
+            color: #ff4081;
+            text-decoration: none;
+            font-size: 16px;
+        }
+
+        .register-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2>Login</h2>
+
+        <% if (message) { %>
+            <p class="error-message"><%= message %></p>
+        <% } %>
+
+        <form action="/login-adm" method="POST">
+            <input type="email" name="email" class="form-input" placeholder="Enter your email" required>
+            <input type="password" name="password" class="form-input" placeholder="Enter your password" required>
+            <button type="submit" class="form-button">Login</button>
+        </form>
+
+        <p>Não tem uma conta ainda? <a href="/register-adm" class="register-link">Create an Account</a></p>
+    </div>
+</body>
+</html>

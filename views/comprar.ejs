@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservar Produto</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        /* Modal Styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>Reservar Produto</h1>
+    <!-- Exibir o nome do usuário logado -->
+    <p>Bem-vindo, <strong><%= usuario.nome %></strong></p>
+
+    <!-- Barra de pesquisa -->
+    <input type="text" id="search" placeholder="Buscar produto..." oninput="searchProducts()">
+
+    <h2>Lista de Produtos</h2>
+    <table id="productTable">
+        <thead>
+            <tr>
+                <th>Produto</th>
+                <th>Marca</th>
+                <th>Modelo</th>
+                <th>Preço</th>
+                <th>Quantidade disponível</th>
+                <th>Reservar</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% itens.forEach(item => { %>
+                <tr class="productRow">
+                    <td><%= item.titulo_produto %></td>
+                    <td><%= item.marca %></td>
+                    <td><%= item.modelo %></td>
+                    <td>R$ <%= item.valor && !isNaN(item.valor) ? item.valor.toFixed(2) : '0.00' %></td>
+                    <td><%= item.quantidade %></td>
+                    <td><button class="openModalBtn" data-id="<%= item.numero_produto %>" data-name="<%= item.titulo_produto %>" data-quantity="<%= item.quantidade %>">Reservar</button></td>
+                </tr>
+            <% }) %>
+        </tbody>
+    </table>
+
+    <!-- Modal para Reservar Produto -->
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Reservar Produto</h2>
+            <form id="reservationForm" action="/reservar" method="POST" onsubmit="return validateForm()">
+                <label for="productSelect">Produto:</label>
+                <select id="productSelect" name="produto" required>
+                    <% itens.forEach(item => { %>
+                        <option value="<%= item.numero_produto %>" data-quantity="<%= item.quantidade %>"><%= item.titulo_produto %></option>
+                    <% }) %>
+                </select>
+                <br><br>
+                <label for="data_retirada">Data de Retirada:</label>
+                <input type="date" id="data_retirada" name="data_retirada" required>
+                <input type="text" id="usuario_id" name="usuario_id" value="<%= usuario.id %>" style="display: none;">
+
+                <br><br>
+                <label for="data_devolucao">Data de Devolução:</label>
+                <input type="date" id="data_devolucao" name="data_devolucao" required>
+                <br><br>
+                <label for="quantitySelect">Quantidade:</label>
+                <select id="quantitySelect" name="quantidade" required>
+                    <!-- Quantidade será atualizada via JavaScript -->
+                </select>
+                <br><br>
+                
+                <button type="submit">Confirmar Reserva</button>
+            </form>
+        </div>
+    </div>
+
+    <h2>Suas Reservas</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Produto</th>
+                <th>Quantidade</th>
+                <th>Data de Retirada</th>
+                <th>Data de Devolução</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% if (reservas && reservas.length > 0) { %>
+                <% reservas.forEach(reserva => { %>
+                    <tr>
+                        <td><%= reserva.titulo_produto %></td> <!-- Exibe o nome do produto -->
+                        <td><%= reserva.quantidade %></td>
+                        <td><%= new Date(reserva.data_retirada).toLocaleDateString() %></td>
+                        <td><%= new Date(reserva.data_devolucao).toLocaleDateString() %></td>
+                        <td><%= reserva.status %></td>
+                    </tr>
+                <% }) %>
+            <% } else { %>
+                <tr>
+                    <td colspan="5">Você ainda não fez nenhuma reserva.</td>
+                </tr>
+            <% } %>
+        </tbody>
+    </table>
+    
+
+    <a href="/logout">Sair</a>
+    <script>
+        // Função para filtrar os produtos com base no nome digitado
+        function searchProducts() {
+            let searchTerm = document.getElementById('search').value.toLowerCase();
+            let rows = document.querySelectorAll('.productRow');
+
+            rows.forEach(row => {
+                let productName = row.querySelector('td').textContent.toLowerCase();
+                if (productName.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // Função para abrir o modal e carregar as opções de quantidade
+        let modal = document.getElementById('myModal');
+        let btns = document.querySelectorAll('.openModalBtn');
+        let closeBtn = document.querySelector('.close');
+        let productSelect = document.getElementById('productSelect');
+        let quantitySelect = document.getElementById('quantitySelect');
+
+        btns.forEach(btn => {
+            btn.onclick = function() {
+                let productId = btn.getAttribute('data-id');
+                let productName = btn.getAttribute('data-name');
+                let productQuantity = btn.getAttribute('data-quantity');
+
+                // Definir o produto no select
+                let option = productSelect.querySelector(`option[value="${productId}"]`);
+                option.selected = true;
+
+                // Atualizar as opções de quantidade com base no produto selecionado
+                updateQuantityOptions(productQuantity);
+
+                modal.style.display = 'block';
+            }
+        });
+
+        closeBtn.onclick = function() {
+            modal.style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Função para atualizar as opções de quantidade no select
+        function updateQuantityOptions(maxQuantity) {
+            quantitySelect.innerHTML = ''; // Limpa as opções existentes
+            for (let i = 1; i <= maxQuantity; i++) {
+                let option = document.createElement('option');
+                option.value = i;
+                option.textContent = i;
+                quantitySelect.appendChild(option);
+            }
+        }
+
+        // Função para validar o formulário antes de enviar
+        function validateForm() {
+            let product = document.getElementById('productSelect').value;
+            let quantity = document.getElementById('quantitySelect').value;
+            let dateRetirada = document.getElementById('data_retirada').value;
+            let dateDevolucao = document.getElementById('data_devolucao').value;
+
+            if (!product || !quantity || !dateRetirada || !dateDevolucao) {
+                alert('Por favor, preencha todos os campos obrigatórios.');
+                return false; // Evita o envio do formulário
+            }
+            return true; // Envia o formulário
+        }
+    </script>
+</body>
+</html>
